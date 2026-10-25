@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; media-src 'self' https:">
   <title>Snoo Sequencer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -64,7 +64,8 @@
 
       <div class="panel bank" id="bank">
         <div class="panel-title">
-          <h2>MA BANQUE</h2>
+          <h2>BANQUE</h2>
+          <button id="open-freesound" class="small" title="Chercher des sons gratuits sur internet">SONS GRATUITS</button>
           <button id="import" class="small accent">+ IMPORTER</button>
           <input id="file-input" type="file" multiple accept="audio/*" hidden>
         </div>
@@ -73,6 +74,47 @@
       </div>
     </section>
   </main>
+
+  <dialog id="freesound" class="freesound">
+    <div class="panel-title">
+      <h2>SONS GRATUITS</h2>
+      <div class="fs-sources" role="tablist">
+        <button class="fs-source" data-source="openverse" title="Freesound, Jamendo, Wikimedia… sans compte ni clé">OPENVERSE</button>
+        <button class="fs-source" data-source="freesound" title="Demande une clé gratuite Freesound">FREESOUND</button>
+      </div>
+      <button id="fs-change-key" class="small" hidden>CHANGER LA CLÉ</button>
+      <button id="fs-close" class="small">FERMER</button>
+    </div>
+
+    <form id="fs-key-form" class="fs-key" hidden>
+      <p>Pour chercher sur Freesound, il faut une clé gratuite :</p>
+      <ol>
+        <li>Crée un compte sur <a href="https://freesound.org/home/register/" target="_blank">freesound.org</a>.</li>
+        <li>Va sur <a href="https://freesound.org/apiv2/apply" target="_blank">freesound.org/apiv2/apply</a> et remplis le formulaire.</li>
+        <li>Copie la valeur « Client secret/Api key » et colle-la ici.</li>
+      </ol>
+      <div class="fs-row">
+        <input id="fs-key" type="password" placeholder="Colle ta clé ici" autocomplete="off">
+        <button class="small accent" type="submit">ENREGISTRER</button>
+      </div>
+      <p class="hint">La clé reste sur ton PC, chiffrée par Windows.</p>
+    </form>
+
+    <div id="fs-search-area" hidden>
+      <form id="fs-search-form" class="fs-row">
+        <input id="fs-query" type="search" placeholder="Que cherches-tu ? (kick, snare, vinyl, voix…)">
+        <button class="small accent" type="submit">CHERCHER</button>
+      </form>
+      <div class="fs-filters">
+        <label><input id="fs-short" type="checkbox" checked> Sons courts</label>
+        <label><input id="fs-cc0" type="checkbox"> Libres de droits uniquement (CC0, domaine public)</label>
+      </div>
+      <p id="fs-source-info" class="hint"></p>
+      <p id="fs-status" class="fs-status"></p>
+      <ul id="fs-results" class="fs-results"></ul>
+      <button id="fs-more" class="small" hidden>PLUS DE RÉSULTATS</button>
+    </div>
+  </dialog>
 
   <script type="module" src="renderer.js"></script>
 </body>

@@ -7,6 +7,7 @@ import {
 import {
   loadBank, saveBankSoon, listSamples, readSample, addSample, removeSample, importSamplesWithDialog,
 } from './sequencer/storage.js';
+import { setupSoundSearch } from './sound-search.js';
 
 const engine = new AudioEngine();
 const kit = new DrumKit(engine, readSample);
@@ -333,6 +334,14 @@ bankPanel.addEventListener('drop', async (e) => {
   if (e.dataTransfer.files.length) await importFiles(e.dataTransfer.files);
 });
 
+setupSoundSearch({
+  getSelectedTrack: () => selectedTrack,
+  onAdded: async (name, track) => {
+    await refreshSamples();
+    if (track !== null) await assignSample(track, name);
+  },
+});
+
 // Sans ça, lâcher un fichier à côté d'une zone ferait "ouvrir" le fichier
 // dans la fenêtre et effacerait l'appli.
 document.addEventListener('dragover', (e) => e.preventDefault());
@@ -390,7 +399,7 @@ clearBtn.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'INPUT' || document.querySelector('dialog[open]')) return;
   if (e.code === 'Space') {
     e.preventDefault();
     togglePlay();

@@ -1,7 +1,7 @@
 {
   "name": "samplersequencersnoo",
   "productName": "Snoo Sequencer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Séquenceur façon TR et sampler pour Windows",
   "main": "main.js",
   "author": "Florian",
