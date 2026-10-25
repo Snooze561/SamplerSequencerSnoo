@@ -2,11 +2,16 @@ import { AudioEngine, STEPS_PER_BAR } from './audio/engine.js';
 import { DrumKit } from './audio/kit.js';
 import { PATTERN_COUNT, toggleStep, clearPattern } from './sequencer/pattern.js';
 import {
-  setSample, setStart, setEnd, setPitch, forgetSample, createSlot,
+  setSample, setStart, setEnd, setPitch, setSend, forgetSample, resetToBuiltIn,
 } from './sequencer/kit-model.js';
 import {
+  addToSong, removeFromSong, isSongActive, patternForBar, barsToExport,
+} from './sequencer/song.js';
+import {
   loadBank, saveBankSoon, listSamples, readSample, addSample, removeSample, importSamplesWithDialog,
+  saveWavFile,
 } from './sequencer/storage.js';
+import { renderWav } from './audio/export.js';
 import { setupSoundSearch } from './sound-search.js';
 
 const engine = new AudioEngine();
@@ -150,6 +155,8 @@ function render() {
     if (kit.channels) kit.setVolume(t, p.volumes[t]);
   });
   patternButtons.forEach((b, i) => b.classList.toggle('active', i === bank.current));
+  kit.updateSends();
+  renderSong();
   renderEditor();
   renderBank();
 }
@@ -162,6 +169,8 @@ const edStart = $('ed-start');
 const edEnd = $('ed-end');
 const edPitch = $('ed-pitch');
 const edPitchValue = $('ed-pitch-value');
+const edReverb = $('ed-reverb');
+const edDelay = $('ed-delay');
 const wave = $('wave');
 const waveEmpty = $('wave-empty');
 
@@ -175,6 +184,8 @@ function renderEditor() {
   edTrack.textContent = `PISTE ${selectedTrack + 1}`;
   edSource.textContent = slot.sample ?? kit.sounds[selectedTrack].name;
   for (const input of [edStart, edEnd, edPitch, $('ed-reset')]) input.disabled = !slot.sample;
+  edReverb.value = slot.reverb;
+  edDelay.value = slot.delay;
   edStart.value = slot.start;
   edEnd.value = slot.end;
   edPitch.value = slot.pitch;
@@ -228,12 +239,19 @@ edPitch.addEventListener('input', () => {
   save();
 });
 // On réécoute le résultat quand on lâche un réglage.
-for (const input of [edStart, edEnd, edPitch]) {
+for (const [input, effect] of [[edReverb, 'reverb'], [edDelay, 'delay']]) {
+  input.addEventListener('input', () => {
+    setSend(bank.kit[selectedTrack], effect, input.value);
+    kit.updateSends();
+    save();
+  });
+}
+for (const input of [edStart, edEnd, edPitch, edReverb, edDelay]) {
   input.addEventListener('change', () => kit.trigger(selectedTrack));
 }
 $('ed-play').addEventListener('click', () => kit.trigger(selectedTrack));
 $('ed-reset').addEventListener('click', () => {
-  Object.assign(bank.kit[selectedTrack], createSlot());
+  resetToBuiltIn(bank.kit[selectedTrack]);
   render();
   save();
 });
@@ -349,15 +367,26 @@ document.addEventListener('drop', (e) => e.preventDefault());
 
 // --- Lecture ---------------------------------------------------------
 
-engine.onStep = (step, time) => {
-  const p = pattern();
+engine.onStep = (step, time, bar) => {
+  const p = bank.patterns[patternForBar(bank, bar)];
+  if (step === 0) p.volumes.forEach((v, t) => kit.setVolumeAt(t, v, time));
   for (let t = 0; t < rows.length; t++) {
     if (p.steps[t][step] && !p.mutes[t]) kit.trigger(t, time);
   }
 };
 
 let litStep = -1;
-engine.onStepChange((step) => {
+engine.onStepChange((step, bar) => {
+  // En mode morceau, la grille suit le pattern qui joue.
+  if (step === 0 && isSongActive(bank)) {
+    playingSongPos = bar % bank.song.length;
+    bank.current = bank.song[playingSongPos];
+    render();
+  }
+  if (step < 0) {
+    playingSongPos = -1;
+    renderSong();
+  }
   if (litStep >= 0) {
     numberEls[litStep].classList.remove('current');
     rows.forEach((row) => row.cells[litStep].classList.remove('playhead'));
@@ -398,6 +427,84 @@ clearBtn.addEventListener('click', () => {
   save();
 });
 
+// --- Swing -----------------------------------------------------------
+
+const swingInput = $('swing');
+const swingValue = $('swing-value');
+
+function setSwing(percent, store = true) {
+  bank.swing = engine.setSwing(Number(percent) / 100);
+  swingInput.value = Math.round(bank.swing * 100);
+  swingValue.textContent = `${swingInput.value} %`;
+  if (store) save();
+}
+swingInput.addEventListener('input', () => setSwing(swingInput.value));
+
+// --- Mode morceau -----------------------------------------------------
+
+const songModeBtn = $('song-mode');
+const songList = $('song-list');
+const songEmpty = $('song-empty');
+let playingSongPos = -1;
+
+function renderSong() {
+  songModeBtn.classList.toggle('active', bank.songMode);
+  songEmpty.hidden = bank.song.length > 0;
+  songList.replaceChildren(...bank.song.map((p, i) => {
+    const li = document.createElement('li');
+    const chip = document.createElement('button');
+    chip.className = 'song-chip';
+    chip.classList.toggle('playing', engine.playing && bank.songMode && i === playingSongPos);
+    chip.textContent = p + 1;
+    chip.title = `Mesure ${i + 1} : pattern ${p + 1}. Clic pour retirer.`;
+    chip.addEventListener('click', () => {
+      removeFromSong(bank, i);
+      render();
+      save();
+    });
+    li.append(chip);
+    return li;
+  }));
+}
+
+songModeBtn.addEventListener('click', () => {
+  bank.songMode = !bank.songMode;
+  render();
+  save();
+});
+$('song-add').addEventListener('click', () => {
+  addToSong(bank, bank.current);
+  render();
+  save();
+});
+$('song-clear').addEventListener('click', () => {
+  bank.song = [];
+  render();
+  save();
+});
+
+// --- Export WAV ---------------------------------------------------------
+
+const exportBtn = $('export');
+exportBtn.addEventListener('click', async () => {
+  const bars = barsToExport(bank);
+  const label = isSongActive(bank) ? 'morceau' : `pattern ${bank.current + 1}`;
+  exportBtn.disabled = true;
+  exportBtn.textContent = 'EXPORT EN COURS…';
+  try {
+    const wav = await renderWav({ bank, bars, masterVolume: Number(volume.value), liveKit: kit });
+    const saved = await saveWavFile(`Snoo - ${label}.wav`, wav);
+    exportBtn.textContent = saved ? '✓ EXPORTÉ' : '⬇ EXPORT WAV';
+    if (saved) exportBtn.title = `Enregistré : ${saved}`;
+  } catch (err) {
+    console.error('Export impossible', err);
+    exportBtn.textContent = '✗ EXPORT RATÉ';
+  } finally {
+    exportBtn.disabled = false;
+    setTimeout(() => { exportBtn.textContent = '⬇ EXPORT WAV'; }, 3000);
+  }
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || document.querySelector('dialog[open]')) return;
   if (e.code === 'Space') {
@@ -414,6 +521,7 @@ document.addEventListener('click', (e) => {
 });
 
 setBpm(bank.bpm, false);
+setSwing(bank.swing * 100, false);
 render();
 await refreshSamples();
 // On prépare à l'avance les samples du kit, pour qu'ils sonnent dès le

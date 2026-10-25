@@ -1,4 +1,7 @@
-import { STEPS_PER_BAR, stepDuration, clampBpm, nextStep } from './clock.js';
+import {
+  STEPS_PER_BAR, stepDuration, clampBpm, nextStep, swingOffset, clampSwing,
+} from './clock.js';
+import { createEffects, createMaster } from './effects.js';
 
 // Programmation "en avance" : un timer JavaScript réveille le moteur
 // toutes les 25 ms, et le moteur place dans l'horloge audio tous les pas
@@ -11,7 +14,11 @@ export class AudioEngine {
   constructor() {
     this.ctx = null;
     this.master = null;
+    this.fx = null;
     this.bpm = 120;
+    this.swing = 0;
+    // Numéro de la mesure en cours depuis le dernier PLAY (pour le mode morceau).
+    this.bar = 0;
     this.playing = false;
     this.metronome = true;
     this.currentStep = 0;
@@ -20,22 +27,27 @@ export class AudioEngine {
     this.stepListeners = [];
     // Pas programmés mais pas encore entendus, pour synchroniser l'affichage.
     this.pending = [];
-    // Appelé à chaque pas avec (step, time) : les pistes s'y brancheront.
+    // Appelé à chaque pas avec (step, time, bar) : les pistes s'y branchent.
     this.onStep = null;
   }
 
   ensureContext() {
     if (this.ctx) return;
     this.ctx = new AudioContext({ latencyHint: 'interactive' });
-    this.master = this.ctx.createGain();
-    this.master.gain.value = 0.8;
-    this.master.connect(this.ctx.destination);
+    this.master = createMaster(this.ctx, 0.8);
+    this.fx = createEffects(this.ctx, this.master, this.bpm);
     requestAnimationFrame(() => this.drawLoop());
   }
 
   setBpm(value) {
     this.bpm = clampBpm(value);
+    if (this.fx) this.fx.setTempo(this.bpm);
     return this.bpm;
+  }
+
+  setSwing(value) {
+    this.swing = clampSwing(value);
+    return this.swing;
   }
 
   setMasterVolume(value) {
@@ -49,6 +61,7 @@ export class AudioEngine {
     if (this.playing) return;
     this.playing = true;
     this.currentStep = 0;
+    this.bar = 0;
     this.nextStepTime = this.ctx.currentTime + 0.05;
     this.timer = setInterval(() => this.schedule(), LOOKAHEAD_MS);
     this.schedule();
@@ -68,10 +81,12 @@ export class AudioEngine {
 
   schedule() {
     while (this.nextStepTime < this.ctx.currentTime + SCHEDULE_AHEAD_S) {
-      this.playStep(this.currentStep, this.nextStepTime);
-      this.pending.push({ step: this.currentStep, time: this.nextStepTime });
+      const time = this.nextStepTime + swingOffset(this.currentStep, this.bpm, this.swing);
+      this.playStep(this.currentStep, time);
+      this.pending.push({ step: this.currentStep, time, bar: this.bar });
       this.nextStepTime += stepDuration(this.bpm);
       this.currentStep = nextStep(this.currentStep);
+      if (this.currentStep === 0) this.bar++;
     }
   }
 
@@ -79,7 +94,7 @@ export class AudioEngine {
     if (this.metronome && step % 4 === 0) {
       this.click(time, step === 0);
     }
-    if (this.onStep) this.onStep(step, time);
+    if (this.onStep) this.onStep(step, time, this.bar);
   }
 
   click(time, accent) {
@@ -97,17 +112,17 @@ export class AudioEngine {
     this.stepListeners.push(listener);
   }
 
-  emitStep(step) {
-    for (const listener of this.stepListeners) listener(step);
+  emitStep(step, bar = 0) {
+    for (const listener of this.stepListeners) listener(step, bar);
   }
 
   drawLoop() {
     const now = this.ctx.currentTime;
     let shown = null;
     while (this.pending.length && this.pending[0].time <= now) {
-      shown = this.pending.shift().step;
+      shown = this.pending.shift();
     }
-    if (shown !== null) this.emitStep(shown);
+    if (shown !== null) this.emitStep(shown.step, shown.bar);
     requestAnimationFrame(() => this.drawLoop());
   }
 }

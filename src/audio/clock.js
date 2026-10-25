@@ -19,3 +19,21 @@ export function clampBpm(value) {
 export function nextStep(step) {
   return (step + 1) % STEPS_PER_BAR;
 }
+
+// Swing : les pas pairs (2, 4, 6… en comptant à partir de 1) sont
+// retardés d'une fraction de pas. 0 = carré, 0,5 = presque ternaire.
+export const MAX_SWING = 0.5;
+
+export function clampSwing(value) {
+  const swing = Number(value);
+  if (!Number.isFinite(swing)) return 0;
+  return Math.min(MAX_SWING, Math.max(0, swing));
+}
+
+export function swingOffset(step, bpm, swing) {
+  return step % 2 === 1 ? clampSwing(swing) * stepDuration(bpm) : 0;
+}
+
+export function barDuration(bpm) {
+  return STEPS_PER_BAR * stepDuration(bpm);
+}

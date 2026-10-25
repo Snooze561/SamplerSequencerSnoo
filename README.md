@@ -9,6 +9,8 @@ Séquenceur façon Roland TR et sampler inspiré du Boss Dr. Sample, pour Window
 3. **Sampler** : banque de sons perso, un sample sur n'importe quelle piste, réglages début/fin et hauteur ✅
 4. **Banques gratuites** : recherche, écoute et ajout de sons Openverse (sans compte) et Freesound dans l'appli ✅
 
+5. **Aller plus loin** : swing, mode morceau, réverb et delay par piste, export WAV ✅
+
 ## Installer l'application (sans rien programmer)
 
 1. Ouvre l'onglet **Actions** du dépôt sur GitHub.
@@ -31,6 +33,13 @@ npm start
 
 - **Barre d'espace** : lecture / stop
 - **Touches 1 à 8** : changer de pattern
+
+## Composer un morceau
+
+- **Swing** : décale les pas pairs pour un groove moins carré (0 % = carré, 50 % = presque ternaire).
+- **Mode morceau** : sélectionne un pattern puis clique sur « + Ajouter le pattern », autant de fois que tu veux (jusqu'à 64 mesures). Active « Mode morceau » : PLAY enchaîne la liste en boucle et la grille suit le pattern qui joue. Clique sur une case de la liste pour la retirer.
+- **Effets** : dans le panneau Sampler, « Réverb » et « Delay » règlent la quantité d'effet de la piste sélectionnée (marche aussi avec les sons 808). Le delay est calé sur le tempo.
+- **Export WAV** : enregistre le morceau (en mode morceau) ou le pattern courant joué 4 fois, effets compris, en WAV 16 bits / 44,1 kHz, prêt pour ton logiciel de musique ou pour l'écoute.
 
 ## Utiliser tes propres sons
 

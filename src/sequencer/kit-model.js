@@ -8,15 +8,26 @@ export const MAX_PITCH = 12;
 export const MIN_LENGTH = 0.01;
 
 export function createSlot() {
-  return { sample: null, start: 0, end: 1, pitch: 0 };
+  // reverb / delay : quantité de son envoyée vers les effets (0 à 1).
+  return { sample: null, start: 0, end: 1, pitch: 0, reverb: 0, delay: 0 };
 }
 
 export function createKit(trackCount) {
   return Array.from({ length: trackCount }, createSlot);
 }
 
+// Changer de son remet début, fin et hauteur à zéro, mais garde les effets.
 export function setSample(slot, name) {
-  Object.assign(slot, createSlot(), { sample: name });
+  Object.assign(slot, { sample: name, start: 0, end: 1, pitch: 0 });
+}
+
+export function resetToBuiltIn(slot) {
+  setSample(slot, null);
+}
+
+export function setSend(slot, effect, value) {
+  slot[effect] = Math.min(1, Math.max(0, Number(value) || 0));
+  return slot[effect];
 }
 
 export function setStart(slot, value) {
@@ -43,19 +54,24 @@ function isSlot(s) {
   return s && (s.sample === null || (typeof s.sample === 'string' && s.sample.length > 0))
     && typeof s.start === 'number' && typeof s.end === 'number'
     && s.start >= 0 && s.end <= 1 && s.end - s.start >= MIN_LENGTH - 1e-9
-    && Number.isInteger(s.pitch) && s.pitch >= MIN_PITCH && s.pitch <= MAX_PITCH;
+    && Number.isInteger(s.pitch) && s.pitch >= MIN_PITCH && s.pitch <= MAX_PITCH
+    && [s.reverb, s.delay].every((v) => typeof v === 'number' && v >= 0 && v <= 1);
 }
 
-// Les banques des versions précédentes n'ont pas de kit : on en crée un.
+// Les banques des versions précédentes n'ont pas de kit, ou pas d'effets :
+// on complète avec les valeurs par défaut.
 export function parseKit(kit, trackCount) {
   if (!Array.isArray(kit) || kit.length !== trackCount) return createKit(trackCount);
-  return kit.map((s) => (isSlot(s) ? s : createSlot()));
+  return kit.map((s) => {
+    const slot = s && typeof s === 'object' ? { ...createSlot(), ...s } : null;
+    return isSlot(slot) ? slot : createSlot();
+  });
 }
 
 // Quand un sample est supprimé de la banque, les pistes qui l'utilisaient
 // reviennent à leur son 808.
 export function forgetSample(kit, name) {
   for (const slot of kit) {
-    if (slot.sample === name) Object.assign(slot, createSlot());
+    if (slot.sample === name) resetToBuiltIn(slot);
   }
 }
