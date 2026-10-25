@@ -53,4 +53,5 @@ L'appli télécharge l'aperçu MP3 haute qualité de Freesound (le fichier origi
 
 Dans `%APPDATA%\Snoo Sequencer` :
 - `patterns.json` : patterns, tempo et réglages des pistes
-- `samples\` : copie des sons importés (l'original peut être déplacé ou supprimé sans souci)
+- `samples\` : copie des sons importés (l'original peut être déplacé ou supprimé sans souci) et `CREDITS.txt`
+- `freesound-key` : ta clé Freesound, chiffrée
