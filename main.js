@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, net, safeStorage, shell } = require('electron');
 const fs = require('fs/promises');
 const path = require('path');
 const { SampleLibrary, AUDIO_EXTENSIONS } = require('./lib/sample-library');
+const freesound = require('./lib/freesound');
 
 // Les patterns sont rangés dans le dossier de données de l'appli
 // (%APPDATA%\Snoo Sequencer sous Windows), pas dans le dossier d'installation.
@@ -43,6 +44,47 @@ ipcMain.handle('samples:import', async (event) => {
   return names;
 });
 
+// --- Freesound ---------------------------------------------------------
+// La clé API est chiffrée par Windows (safeStorage) quand c'est possible,
+// et ne sort jamais du processus principal.
+
+const keyFile = () => path.join(app.getPath('userData'), 'freesound-key');
+
+async function readKey() {
+  try {
+    const data = await fs.readFile(keyFile());
+    return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(data) : data.toString('utf8');
+  } catch {
+    return '';
+  }
+}
+
+async function writeKey(key) {
+  if (!key) return fs.rm(keyFile(), { force: true });
+  const data = safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(key) : Buffer.from(key, 'utf8');
+  return fs.writeFile(keyFile(), data);
+}
+
+// net.fetch passe par la connexion de Chromium, qui suit les réglages
+// réseau et proxy de Windows.
+const fetchImpl = (url) => net.fetch(url);
+
+ipcMain.handle('freesound:has-key', async () => Boolean(await readKey()));
+ipcMain.handle('freesound:set-key', (_event, key) => writeKey(String(key ?? '').trim()));
+ipcMain.handle('freesound:search', async (_event, options) => freesound.search(fetchImpl, await readKey(), options));
+
+ipcMain.handle('freesound:add', async (_event, sound) => {
+  if (!sound || !Number.isInteger(sound.id) || typeof sound.name !== 'string') {
+    throw new Error('Son Freesound invalide.');
+  }
+  const bytes = await freesound.downloadPreview(fetchImpl, sound.preview);
+  const lib = library();
+  const name = await lib.add(freesound.fileNameFor(sound), bytes);
+  // On garde la trace de l'auteur et de la licence de chaque son téléchargé.
+  await fs.appendFile(path.join(lib.dir, 'CREDITS.txt'), freesound.creditLine(sound, name), 'utf8');
+  return name;
+});
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1100,
@@ -58,6 +100,14 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  // Les liens (Freesound, licences) s'ouvrent dans le navigateur habituel,
+  // jamais dans la fenêtre de l'appli.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https://')) shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  win.webContents.on('will-navigate', (event) => event.preventDefault());
 
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
 }

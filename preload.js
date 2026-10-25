@@ -3,7 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('snoo', {
-  version: '0.3.0',
+  version: '0.4.0',
   loadPatterns: () => ipcRenderer.invoke('patterns:load'),
   savePatterns: (json) => ipcRenderer.invoke('patterns:save', json),
   listSamples: () => ipcRenderer.invoke('samples:list'),
@@ -11,4 +11,8 @@ contextBridge.exposeInMainWorld('snoo', {
   removeSample: (name) => ipcRenderer.invoke('samples:remove', name),
   addSample: (name, bytes) => ipcRenderer.invoke('samples:add', name, bytes),
   importSamples: () => ipcRenderer.invoke('samples:import'),
+  freesoundHasKey: () => ipcRenderer.invoke('freesound:has-key'),
+  freesoundSetKey: (key) => ipcRenderer.invoke('freesound:set-key', key),
+  freesoundSearch: (options) => ipcRenderer.invoke('freesound:search', options),
+  freesoundAdd: (sound) => ipcRenderer.invoke('freesound:add', sound),
 });
