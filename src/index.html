@@ -25,14 +25,23 @@
     </label>
 
     <label class="control toggle">
-      <input id="metronome" type="checkbox" checked>
+      <input id="metronome" type="checkbox">
       <span>MÉTRONOME</span>
     </label>
   </header>
 
+  <nav class="patterns">
+    <span class="label">PATTERN</span>
+    <div id="pattern-buttons" class="pattern-buttons"></div>
+    <button id="clear" class="small" title="Effacer tous les pas du pattern">EFFACER</button>
+  </nav>
+
   <main>
-    <section class="steps" id="steps" aria-label="Position dans la mesure"></section>
-    <p class="hint">Étape 1 : le moteur audio tourne. La grille de batterie arrive à l'étape 2.</p>
+    <div class="grid" id="grid">
+      <div class="track-head"></div>
+      <div class="step-numbers" id="step-numbers"></div>
+    </div>
+    <p class="hint">Clique sur une case pour placer un son. Clique sur le nom d'une piste pour l'écouter. Tout est sauvegardé automatiquement.</p>
   </main>
 
   <script type="module" src="renderer.js"></script>

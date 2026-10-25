@@ -1,5 +1,26 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const fs = require('fs/promises');
 const path = require('path');
+
+// Les patterns sont rangés dans le dossier de données de l'appli
+// (%APPDATA%\Snoo Sequencer sous Windows), pas dans le dossier d'installation.
+const patternsFile = () => path.join(app.getPath('userData'), 'patterns.json');
+
+ipcMain.handle('patterns:load', async () => {
+  try {
+    return await fs.readFile(patternsFile(), 'utf8');
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('patterns:save', async (_event, json) => {
+  // Écriture dans un fichier temporaire puis renommage : un plantage
+  // pendant la sauvegarde ne peut pas abîmer le fichier existant.
+  const tmp = patternsFile() + '.tmp';
+  await fs.writeFile(tmp, json, 'utf8');
+  await fs.rename(tmp, patternsFile());
+});
 
 function createWindow() {
   const win = new BrowserWindow({

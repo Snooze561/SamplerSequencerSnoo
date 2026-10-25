@@ -5,7 +5,7 @@ Séquenceur façon Roland TR et sampler inspiré du Boss Dr. Sample, pour Window
 ## Feuille de route
 
 1. **Base de l'application** : fenêtre Windows, tempo, play/stop, moteur audio, installateur `.exe` ✅
-2. **Séquenceur TR** : grille 16 pas × 8 pistes, kit de batterie gratuit, sauvegarde des patterns
+2. **Séquenceur TR** : grille 16 pas × 8 pistes, kit de batterie synthétisé façon 808, 8 patterns sauvegardés ✅
 3. **Sampler** : charger ses propres sons, réglages début/fin, hauteur, volume, banque perso
 4. **Banques gratuites** : recherche et téléchargement depuis Freesound.org
 
@@ -27,4 +27,9 @@ npm install
 npm start
 ```
 
-Raccourci : **barre d'espace** = lecture / stop.
+## Raccourcis
+
+- **Barre d'espace** : lecture / stop
+- **Touches 1 à 8** : changer de pattern
+
+Les patterns sont sauvegardés automatiquement dans `%APPDATA%\Snoo Sequencer\patterns.json`.
