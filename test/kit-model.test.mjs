@@ -16,7 +16,7 @@ test('poser un sample remet ses réglages à zéro', () => {
   setPitch(slot, 5);
   setStart(slot, 0.3);
   setSample(slot, 'kick.wav');
-  assert.deepEqual(slot, { sample: 'kick.wav', start: 0, end: 1, pitch: 0 });
+  assert.deepEqual(slot, { sample: 'kick.wav', start: 0, end: 1, pitch: 0, reverb: 0, delay: 0 });
 });
 
 test('le début reste avant la fin, et inversement', () => {

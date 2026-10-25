@@ -102,6 +102,19 @@ async function addDownloaded(fileName, bytes, sound) {
   return name;
 }
 
+// --- Export WAV ------------------------------------------------------------
+
+ipcMain.handle('export:save', async (event, suggestedName, bytes) => {
+  const result = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), {
+    title: 'Exporter en WAV',
+    defaultPath: path.join(app.getPath('music'), suggestedName),
+    filters: [{ name: 'Son WAV', extensions: ['wav'] }],
+  });
+  if (result.canceled || !result.filePath) return null;
+  await fs.writeFile(result.filePath, Buffer.from(bytes));
+  return result.filePath;
+});
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1100,

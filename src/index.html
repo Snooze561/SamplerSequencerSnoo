@@ -24,16 +24,32 @@
       <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8">
     </label>
 
+    <label class="control" title="Décale les pas pairs pour un groove moins carré">
+      <span>SWING</span>
+      <input id="swing" type="range" min="0" max="50" step="1" value="0">
+      <output id="swing-value">0 %</output>
+    </label>
+
     <label class="control toggle">
       <input id="metronome" type="checkbox">
       <span>MÉTRONOME</span>
     </label>
+
+    <button id="export" class="small accent export" title="Enregistrer le pattern (4 fois) ou le morceau en fichier WAV">⬇ EXPORT WAV</button>
   </header>
 
   <nav class="patterns">
     <span class="label">PATTERN</span>
     <div id="pattern-buttons" class="pattern-buttons"></div>
     <button id="clear" class="small" title="Effacer tous les pas du pattern">EFFACER</button>
+  </nav>
+
+  <nav class="song">
+    <button id="song-mode" class="small" title="Jouer les patterns de la liste l'un après l'autre">MODE MORCEAU</button>
+    <ol id="song-list" class="song-list"></ol>
+    <span id="song-empty" class="hint">Ajoute des patterns pour composer un morceau.</span>
+    <button id="song-add" class="small" title="Ajouter le pattern sélectionné à la fin du morceau">+ AJOUTER LE PATTERN</button>
+    <button id="song-clear" class="small" title="Vider le morceau">VIDER</button>
   </nav>
 
   <main>
@@ -57,6 +73,8 @@
           <label class="control"><span>DÉBUT</span><input id="ed-start" type="range" min="0" max="1" step="0.001"></label>
           <label class="control"><span>FIN</span><input id="ed-end" type="range" min="0" max="1" step="0.001"></label>
           <label class="control"><span>HAUTEUR</span><input id="ed-pitch" type="range" min="-12" max="12" step="1"><output id="ed-pitch-value"></output></label>
+          <label class="control"><span>RÉVERB</span><input id="ed-reverb" type="range" min="0" max="1" step="0.01"></label>
+          <label class="control"><span>DELAY</span><input id="ed-delay" type="range" min="0" max="1" step="0.01"></label>
           <button id="ed-play" class="small">▶ ÉCOUTER</button>
           <button id="ed-reset" class="small">REMETTRE LE SON 808</button>
         </div>

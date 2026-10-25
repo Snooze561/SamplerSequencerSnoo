@@ -71,3 +71,17 @@ export async function removeSample(name) {
 export async function importSamplesWithDialog() {
   return hasApp() ? window.snoo.importSamples() : null;
 }
+
+// Enregistre un WAV : fenêtre « Enregistrer sous » de Windows dans l'appli,
+// téléchargement classique dans un navigateur. Renvoie l'emplacement choisi
+// (ou null si on a annulé).
+export async function saveWavFile(suggestedName, arrayBuffer) {
+  if (window.snoo?.saveWav) return window.snoo.saveWav(suggestedName, new Uint8Array(arrayBuffer));
+  const url = URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/wav' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = suggestedName;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return suggestedName;
+}
