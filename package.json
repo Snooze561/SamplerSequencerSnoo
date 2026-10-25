@@ -1,0 +1,29 @@
+{
+  "name": "samplersequencersnoo",
+  "productName": "Snoo Sequencer",
+  "version": "0.3.0",
+  "description": "Séquenceur façon TR et sampler pour Windows",
+  "main": "main.js",
+  "author": "Florian",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.mjs",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.snooze561.samplersequencer",
+    "productName": "Snoo Sequencer",
+    "files": ["main.js", "preload.js", "lib/**/*", "src/**/*"],
+    "directories": { "output": "dist" },
+    "win": { "target": "nsis" },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

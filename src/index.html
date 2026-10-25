@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>Snoo Sequencer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="transport">
+    <div class="logo">SNOO<span>-16</span></div>
+
+    <button id="play" class="play" title="Lecture / Stop (barre d'espace)">▶ PLAY</button>
+
+    <label class="control">
+      <span>TEMPO</span>
+      <input id="bpm-range" type="range" min="40" max="240" value="120">
+      <input id="bpm" type="number" min="40" max="240" value="120">
+      <span>BPM</span>
+    </label>
+
+    <label class="control">
+      <span>VOLUME</span>
+      <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8">
+    </label>
+
+    <label class="control toggle">
+      <input id="metronome" type="checkbox">
+      <span>MÉTRONOME</span>
+    </label>
+  </header>
+
+  <nav class="patterns">
+    <span class="label">PATTERN</span>
+    <div id="pattern-buttons" class="pattern-buttons"></div>
+    <button id="clear" class="small" title="Effacer tous les pas du pattern">EFFACER</button>
+  </nav>
+
+  <main>
+    <div class="grid" id="grid">
+      <div class="track-head"></div>
+      <div class="step-numbers" id="step-numbers"></div>
+    </div>
+    <p class="hint">Clique sur une case pour placer un son. Clique sur le nom d'une piste pour l'écouter et la régler. Glisse un fichier son sur une piste pour le charger. Tout est sauvegardé automatiquement.</p>
+
+    <section class="lower">
+      <div class="panel editor">
+        <div class="panel-title">
+          <h2>SAMPLER · <span id="ed-track"></span></h2>
+          <span id="ed-source" class="source"></span>
+        </div>
+        <div class="wave-box">
+          <canvas id="wave" width="1200" height="240"></canvas>
+          <p id="wave-empty" class="wave-empty">Son 808 intégré. Choisis un son dans ta banque ou glisse un fichier sur la piste pour le remplacer.</p>
+        </div>
+        <div class="editor-controls">
+          <label class="control"><span>DÉBUT</span><input id="ed-start" type="range" min="0" max="1" step="0.001"></label>
+          <label class="control"><span>FIN</span><input id="ed-end" type="range" min="0" max="1" step="0.001"></label>
+          <label class="control"><span>HAUTEUR</span><input id="ed-pitch" type="range" min="-12" max="12" step="1"><output id="ed-pitch-value"></output></label>
+          <button id="ed-play" class="small">▶ ÉCOUTER</button>
+          <button id="ed-reset" class="small">REMETTRE LE SON 808</button>
+        </div>
+      </div>
+
+      <div class="panel bank" id="bank">
+        <div class="panel-title">
+          <h2>MA BANQUE</h2>
+          <button id="import" class="small accent">+ IMPORTER</button>
+          <input id="file-input" type="file" multiple accept="audio/*" hidden>
+        </div>
+        <ul id="bank-list" class="bank-list"></ul>
+        <p id="bank-empty" class="hint">Ta banque est vide. Clique sur « Importer » ou glisse tes fichiers (WAV, MP3, OGG, FLAC…) ici.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>
