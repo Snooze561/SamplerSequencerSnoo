@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; media-src 'self' https://cdn.freesound.org https://freesound.org">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; media-src 'self' https:">
   <title>Snoo Sequencer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -64,8 +64,8 @@
 
       <div class="panel bank" id="bank">
         <div class="panel-title">
-          <h2>MA BANQUE</h2>
-          <button id="open-freesound" class="small" title="Chercher des sons gratuits sur Freesound.org">FREESOUND</button>
+          <h2>BANQUE</h2>
+          <button id="open-freesound" class="small" title="Chercher des sons gratuits sur internet">SONS GRATUITS</button>
           <button id="import" class="small accent">+ IMPORTER</button>
           <input id="file-input" type="file" multiple accept="audio/*" hidden>
         </div>
@@ -77,7 +77,11 @@
 
   <dialog id="freesound" class="freesound">
     <div class="panel-title">
-      <h2>FREESOUND · SONS GRATUITS</h2>
+      <h2>SONS GRATUITS</h2>
+      <div class="fs-sources" role="tablist">
+        <button class="fs-source" data-source="openverse" title="Freesound, Jamendo, Wikimedia… sans compte ni clé">OPENVERSE</button>
+        <button class="fs-source" data-source="freesound" title="Demande une clé gratuite Freesound">FREESOUND</button>
+      </div>
       <button id="fs-change-key" class="small" hidden>CHANGER LA CLÉ</button>
       <button id="fs-close" class="small">FERMER</button>
     </div>
@@ -102,9 +106,10 @@
         <button class="small accent" type="submit">CHERCHER</button>
       </form>
       <div class="fs-filters">
-        <label><input id="fs-short" type="checkbox" checked> Sons courts (moins de 5 s)</label>
-        <label><input id="fs-cc0" type="checkbox"> Licence CC0 uniquement (libre pour tout usage)</label>
+        <label><input id="fs-short" type="checkbox" checked> Sons courts</label>
+        <label><input id="fs-cc0" type="checkbox"> Libres de droits uniquement (CC0, domaine public)</label>
       </div>
+      <p id="fs-source-info" class="hint"></p>
       <p id="fs-status" class="fs-status"></p>
       <ul id="fs-results" class="fs-results"></ul>
       <button id="fs-more" class="small" hidden>PLUS DE RÉSULTATS</button>

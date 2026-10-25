@@ -15,4 +15,6 @@ contextBridge.exposeInMainWorld('snoo', {
   freesoundSetKey: (key) => ipcRenderer.invoke('freesound:set-key', key),
   freesoundSearch: (options) => ipcRenderer.invoke('freesound:search', options),
   freesoundAdd: (sound) => ipcRenderer.invoke('freesound:add', sound),
+  openverseSearch: (options) => ipcRenderer.invoke('openverse:search', options),
+  openverseAdd: (sound) => ipcRenderer.invoke('openverse:add', sound),
 });

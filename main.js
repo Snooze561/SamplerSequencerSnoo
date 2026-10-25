@@ -3,6 +3,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const { SampleLibrary, AUDIO_EXTENSIONS } = require('./lib/sample-library');
 const freesound = require('./lib/freesound');
+const openverse = require('./lib/openverse');
 
 // Les patterns sont rangés dans le dossier de données de l'appli
 // (%APPDATA%\Snoo Sequencer sous Windows), pas dans le dossier d'installation.
@@ -67,7 +68,7 @@ async function writeKey(key) {
 
 // net.fetch passe par la connexion de Chromium, qui suit les réglages
 // réseau et proxy de Windows.
-const fetchImpl = (url) => net.fetch(url);
+const fetchImpl = (url, init) => net.fetch(url, init);
 
 ipcMain.handle('freesound:has-key', async () => Boolean(await readKey()));
 ipcMain.handle('freesound:set-key', (_event, key) => writeKey(String(key ?? '').trim()));
@@ -78,12 +79,28 @@ ipcMain.handle('freesound:add', async (_event, sound) => {
     throw new Error('Son Freesound invalide.');
   }
   const bytes = await freesound.downloadPreview(fetchImpl, sound.preview);
+  return addDownloaded(freesound.fileNameFor(sound), bytes, sound);
+});
+
+// --- Openverse (sans compte) ----------------------------------------------
+
+ipcMain.handle('openverse:search', (_event, options) => openverse.search(fetchImpl, options));
+
+ipcMain.handle('openverse:add', async (_event, sound) => {
+  if (!sound || typeof sound.id !== 'string' || typeof sound.name !== 'string' || typeof sound.ext !== 'string') {
+    throw new Error('Son Openverse invalide.');
+  }
+  const bytes = await openverse.download(fetchImpl, sound.preview);
+  return addDownloaded(openverse.fileNameFor(sound), bytes, sound);
+});
+
+async function addDownloaded(fileName, bytes, sound) {
   const lib = library();
-  const name = await lib.add(freesound.fileNameFor(sound), bytes);
+  const name = await lib.add(fileName, bytes);
   // On garde la trace de l'auteur et de la licence de chaque son téléchargé.
   await fs.appendFile(path.join(lib.dir, 'CREDITS.txt'), freesound.creditLine(sound, name), 'utf8');
   return name;
-});
+}
 
 function createWindow() {
   const win = new BrowserWindow({

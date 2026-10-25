@@ -7,7 +7,7 @@ import {
 import {
   loadBank, saveBankSoon, listSamples, readSample, addSample, removeSample, importSamplesWithDialog,
 } from './sequencer/storage.js';
-import { setupFreesound } from './freesound-panel.js';
+import { setupSoundSearch } from './sound-search.js';
 
 const engine = new AudioEngine();
 const kit = new DrumKit(engine, readSample);
@@ -334,7 +334,7 @@ bankPanel.addEventListener('drop', async (e) => {
   if (e.dataTransfer.files.length) await importFiles(e.dataTransfer.files);
 });
 
-setupFreesound({
+setupSoundSearch({
   getSelectedTrack: () => selectedTrack,
   onAdded: async (name, track) => {
     await refreshSamples();
