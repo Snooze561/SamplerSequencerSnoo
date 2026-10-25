@@ -1,6 +1,7 @@
 // Modèle des patterns, sans dépendance au navigateur (testable avec `npm test`).
 
 import { STEPS_PER_BAR } from '../audio/clock.js';
+import { createKit, parseKit } from './kit-model.js';
 
 export const TRACK_COUNT = 8;
 export const PATTERN_COUNT = 8;
@@ -27,7 +28,7 @@ export function createDemoPattern() {
 export function createBank() {
   const patterns = Array.from({ length: PATTERN_COUNT }, createPattern);
   patterns[0] = createDemoPattern();
-  return { bpm: 120, current: 0, patterns };
+  return { bpm: 120, current: 0, patterns, kit: createKit(TRACK_COUNT) };
 }
 
 export function toggleStep(pattern, track, step) {
@@ -65,7 +66,7 @@ export function parseBank(json) {
     const current = Number.isInteger(bank.current) && bank.current >= 0 && bank.current < PATTERN_COUNT
       ? bank.current : 0;
     const bpm = typeof bank.bpm === 'number' ? bank.bpm : 120;
-    return { bpm, current, patterns: bank.patterns };
+    return { bpm, current, patterns: bank.patterns, kit: parseKit(bank.kit, TRACK_COUNT) };
   } catch {
     return createBank();
   }

@@ -6,7 +6,7 @@ Séquenceur façon Roland TR et sampler inspiré du Boss Dr. Sample, pour Window
 
 1. **Base de l'application** : fenêtre Windows, tempo, play/stop, moteur audio, installateur `.exe` ✅
 2. **Séquenceur TR** : grille 16 pas × 8 pistes, kit de batterie synthétisé façon 808, 8 patterns sauvegardés ✅
-3. **Sampler** : charger ses propres sons, réglages début/fin, hauteur, volume, banque perso
+3. **Sampler** : banque de sons perso, un sample sur n'importe quelle piste, réglages début/fin et hauteur ✅
 4. **Banques gratuites** : recherche et téléchargement depuis Freesound.org
 
 ## Installer l'application (sans rien programmer)
@@ -32,4 +32,14 @@ npm start
 - **Barre d'espace** : lecture / stop
 - **Touches 1 à 8** : changer de pattern
 
-Les patterns sont sauvegardés automatiquement dans `%APPDATA%\Snoo Sequencer\patterns.json`.
+## Utiliser tes propres sons
+
+- **Importer** : bouton « + Importer » de « Ma banque », ou glisse tes fichiers (WAV, MP3, OGG, FLAC, AIFF, M4A) sur la banque.
+- **Mettre un son sur une piste** : sélectionne la piste (clic sur son nom) puis clique sur un son de la banque. Tu peux aussi glisser un son de la banque, ou directement un fichier, sur la piste.
+- **Régler** : le panneau Sampler montre la forme d'onde ; règle le début, la fin et la hauteur (±12 demi-tons). « Remettre le son 808 » rend à la piste son son d'origine.
+
+## Où sont rangées tes données
+
+Dans `%APPDATA%\Snoo Sequencer` :
+- `patterns.json` : patterns, tempo et réglages des pistes
+- `samples\` : copie des sons importés (l'original peut être déplacé ou supprimé sans souci)

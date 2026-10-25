@@ -1,7 +1,7 @@
 {
   "name": "samplersequencersnoo",
   "productName": "Snoo Sequencer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Séquenceur façon TR et sampler pour Windows",
   "main": "main.js",
   "author": "Florian",
@@ -18,7 +18,7 @@
   "build": {
     "appId": "com.snooze561.samplersequencer",
     "productName": "Snoo Sequencer",
-    "files": ["main.js", "preload.js", "src/**/*"],
+    "files": ["main.js", "preload.js", "lib/**/*", "src/**/*"],
     "directories": { "output": "dist" },
     "win": { "target": "nsis" },
     "nsis": {
